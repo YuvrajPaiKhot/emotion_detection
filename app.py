@@ -1,38 +1,23 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[5]:
-
-
-import os
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import joblib
+import pickle
 
 app = Flask(__name__)
-CORS(app)
 
-# Load the model
-model = joblib.load('text_emotion_model.pkl')
+# Load the pre-trained model
+with open('text_emotion_model.pkl', 'rb') as model_file:
+    model = pickle.load(model_file)
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    # Get the input data from the request
     data = request.json
-    text = data['text']
-    
-    # Preprocess the text (if needed)
-    # prediction = model.predict([preprocessed_text])
-    prediction = model.predict([text])
-    
-    return jsonify({'emotion': prediction[0]})
+    text = data.get('text', '')
+
+    # Predict the emotion
+    prediction = model.predict([text])[0]
+
+    # Return the prediction as a JSON response
+    return jsonify({'emotion': prediction})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
-
-
-# In[ ]:
-
-
-
-
+    app.run(host='0.0.0.0', port=5000)
